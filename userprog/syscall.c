@@ -286,23 +286,24 @@ int open(const char *file) {
 	do
 	{
 		i++;
-		cur->next_fd += 1;
 
-	} while (cur->fdt[i] != 0); // } while (cur->fdt[i] != 0);
+	} while (cur->fdt[i] != 0 && i<64); // } while (cur->fdt[i] != 0);
 	
-	if (i == 64){
+	cur->fdt[i] = filesys_open(file);
+	if (i >= 64){
+		lock_release(&filesys_lock);
+		file_close(cur->fdt[i]);
+		return -1;
+	}
+
+	if (cur->fdt[i] == NULL){
 		lock_release(&filesys_lock);
 		return -1;
 	}
 
-	cur->fdt[i] = filesys_open(file);
-
-	if (cur->fdt[i] == NULL)
-		return -1;
-
 	lock_release(&filesys_lock);
-
-	return cur->next_fd;
+	cur->fd_idx=i;
+	return cur->fd_idx;
 }
 
 /* System Call 8 : Filesize */

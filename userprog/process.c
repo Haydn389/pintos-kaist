@@ -54,8 +54,8 @@ process_create_initd (const char *file_name) {
 	//(추측)커맨드라인에서 프로세스이름 확인 
 	strlcpy (fn_copy, file_name, PGSIZE);
 	
-	char *token, *save_ptr;
-	token = strtok_r (file_name, " ", &save_ptr);
+	char *save_ptr;
+	strtok_r (file_name, " ", &save_ptr);
 
 	/* Create a new thread to execute FILE_NAME. */
 	// file_name: 스레드이름(문자열), PRI_DEFAULT: 스레드우선순위(31)
@@ -119,15 +119,21 @@ duplicate_pte (uint64_t *pte, void *va, void *aux) {
 	bool writable;
 
 	/* 1. TODO: If the parent_page is kernel page, then return immediately. */
-	if (is_kern_pte(pte)) return true; // ??? pte가 parent page 인가?
-	
+	// if (is_kern_pte(pte)) return true; // ??? pte가 parent page 인가?
+	if (is_kernel_vaddr(va)) {
+		return false;
+	}
 	/* 2. Resolve VA from the parent's page map level 4. */
 	parent_page = pml4_get_page (parent->pml4, va); // parent->pml4에서 
-
+	if (parent_page == NULL) {
+		return false;
+	}
 	/* 3. TODO: Allocate new PAL_USER page for the child and set result to
 	 *    TODO: NEWPAGE. */
 	newpage = palloc_get_page(PAL_USER);
-
+	if (newpage == NULL) {
+		return false;
+	}
 	/* 4. TODO: Duplicate parent's page to the new page and
 	 *    TODO: check whether parent's page is writable or not (set WRITABLE
 	 *    TODO: according to the result). */
@@ -167,6 +173,7 @@ __do_fork (void *aux) {	//process_fork함수에서 thread_create()을 호출하�
 
 	/* 1. Read the cpu context to local stack. */
 	memcpy (&if_, parent_if, sizeof (struct intr_frame)); // ??? 자식에게 넘겨주는것
+	if_.R.rax = 0;
 
 	/* 2. Duplicate PT */
 	current->pml4 = pml4_create();
@@ -198,9 +205,8 @@ __do_fork (void *aux) {	//process_fork함수에서 thread_create()을 호출하�
 				current->fdt[fd]=file_duplicate(parent->fdt[fd]);
 		}
 	}
-
+	current->fd_idx = parent->fd_idx;
 	/* 자식 프로세스 0으로 반환 */
-	if_.R.rax = 0;
 
 	// printf(">>>>>>>parent : %d\n",parent->status);
 	// printf(">>>>>>>child : %d\n",current->status);
@@ -216,7 +222,6 @@ __do_fork (void *aux) {	//process_fork함수에서 thread_create()을 호출하�
 	/* Finally, switch to the newly created process. */
 	if (succ)
 		do_iret (&if_);
-	printf("************out5\n");
 
 
 error:
