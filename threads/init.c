@@ -75,7 +75,7 @@ main (void) {
 
 	/* Break command line into arguments and parse options. */
 	argv = read_command_line ();		// argv : -q -f put args-sing run 'args-single onearg'
-	argv = parse_options (argv);
+	argv = parse_options (argv);		// argv[] ={put, args-sing, run, 'args-single onearg'}
 	#ifdef USERPROG
 		printf("check");
 	#endif
@@ -104,7 +104,9 @@ main (void) {
 	syscall_init ();
 #endif
 	/* Start thread scheduler and enable interrupts. */
-	thread_start ();
+	printf("@!@!@!@!@!@!@ thread_cuurent1 : %s\n",thread_current()->name);
+	thread_start ();	//단순히 idle thread 하나 생성해서 바로 blocked 상태로 만들어줌
+	printf("@!@!@!@!@!@!@ thread_cuurent2 : %s\n",thread_current()->name);
 	serial_init_queue ();
 	timer_calibrate ();
 
@@ -121,11 +123,21 @@ main (void) {
 	printf ("Boot complete.\n");
 
 	/* Run actions specified on kernel command line. */
+	// printf("======= argv[0] : %s\n",argv[0]);
+	// printf("======= argv[1] : %s\n",argv[1]);
+	// printf("======= argv[2] : %s\n",argv[2]);
+	// printf("======= argv[3] : %s\n",argv[3]);
+	// printf("*******************\n");
+
 	run_actions (argv);
+	printf(">>>>>>>>>>>> 마지막111 exit thread name : %s\n",thread_current()->name);
 
 	/* Finish up. */
-	if (power_off_when_done)
+	if (power_off_when_done){
+		printf(">>>>>>>>>>>> 마지막222 exit thread name : %s\n",thread_current()->name);
 		power_off ();
+	}
+	printf(">>>>>>>>>>>> 마지막333 exit thread name : %s\n",thread_current()->name);
 	thread_exit ();
 }
 
@@ -241,7 +253,8 @@ parse_options (char **argv) {		// argv : -q -f put args-sing run 'args-single on
 static void
 run_task (char **argv) {		//  run 'args-single onearg'
 	//argv[1] : 실행가능 목적파일의 이름(file name)
-	const char *task = argv[1];	// 'args-single onearg'
+	printf("======= argv[1] : %s\n",argv[1]);
+	const char *task = argv[1];	// argv[1] : 'args-single onearg'
 	
 	printf ("Executing '%s':\n", task);
 #ifdef USERPROG

@@ -8,6 +8,8 @@
 int
 main (int argc, char *argv[]) 
 {
+	printf("=======main (int argc, char *argv[]) 시작 \n");
+
   int i;
 
   test_name = "args";

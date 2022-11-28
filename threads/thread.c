@@ -98,7 +98,7 @@ static uint64_t gdt[3] = {0, 0x00af9a000000ffff, 0x00cf92000000ffff};
    It is not safe to call thread_current() until this function
    finishes. */
 void thread_init(void)
-{
+{	
 	ASSERT(intr_get_level() == INTR_OFF);
 
 	/* Reload the temporal gdt for the kernel
@@ -129,11 +129,15 @@ void thread_start(void)
 	/* Create the idle thread. */
 	struct semaphore idle_started;
 	sema_init(&idle_started, 0);
+	/* 현재 실행중인 스레드는 main(kern)thread이고 prior 31 */
+	/* idle 스레드(piror 0)가 생성되고 thread_creat()내의 
+	thread_unblock() 함수를 통해 ready_list에 삽입 후 status를 ready 로 만들어줌 */
 	thread_create("idle", PRI_MIN, idle, &idle_started);
 
 	/* Start preemptive thread scheduling. */
 	intr_enable();
-
+	printf(" thread_start() 함수 내부 sema_down 직전 current_thread : %s\n",thread_current()->name);
+	/* sema_down 직전 running thread == main, ready_list에는 idle 들어있음*/
 	/* Wait for the idle thread to initialize idle_thread. */
 	sema_down(&idle_started);
 }
@@ -196,6 +200,7 @@ tid_t thread_create(const char *name, int priority,
 		return TID_ERROR;
 
 	/* Initialize thread. */
+	/* t의 stauts를 blocked로 만들어줌*/
 	init_thread(t, name, priority);
 	tid = t->tid = allocate_tid();
 	/* Call the kernel_thread if it scheduled.
@@ -304,6 +309,7 @@ tid_t thread_tid(void)
    Never returns to the caller. */
 void thread_exit(void)
 {
+
 	ASSERT(!intr_context());
 
 #ifdef USERPROG
@@ -473,6 +479,10 @@ init_thread(struct thread *t, const char *name, int priority)
 	t->status = THREAD_BLOCKED;
 	strlcpy(t->name, name, sizeof t->name);
 	t->tf.rsp = (uint64_t)t + PGSIZE - sizeof(void *);
+
+	printf("**************init_treadd에서 name : %s \n",t->name);
+	printf("**************init_treadd에서 thread주소 : %d \n",t);
+	// printf("**************(uint64_t)t + PGSIZE - sizeof(void *) : %d \n",t->tf.rsp - sizeof(void *));
 	t->priority = priority;
 	t->magic = THREAD_MAGIC;
 
