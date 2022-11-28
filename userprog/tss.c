@@ -56,6 +56,10 @@ tss_init (void) {
 	 * ones we initialize. */
 	tss = palloc_get_page (PAL_ASSERT | PAL_ZERO);
 	tss_update (thread_current ());
+	printf("**************tss_init에서 name : %s \n",thread_current ()->name);
+	printf("**************tss_init에서 thread주소 : %d \n",thread_current ());
+
+
 }
 
 /* Returns the kernel TSS. */

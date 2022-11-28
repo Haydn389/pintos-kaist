@@ -279,8 +279,8 @@ process_exec (void *f_name) {	// f_name = 'args-single onearg'
 	 * (3) iretq instruction을 활용해 T2에서 실행하던 코드를 마저 실행한다.
 	 * 정리하자면, intr_frame에 들어가야 할 내용은 cpu register에 있는 값입니다. 따라서 kernel memory에 별도로 저장되어 있는 값이 아닙니다. */
 	struct intr_frame _if;
-	_if.ds = _if.es = _if.ss = SEL_UDSEG;
-	_if.cs = SEL_UCSEG;
+	_if.ds = _if.es = _if.ss = SEL_UDSEG;	//유저메모리의 데이터
+	_if.cs = SEL_UCSEG;	//유저메모리의 코드
 	_if.eflags = FLAG_IF | FLAG_MBS;
 
 	/* We first kill the current context */
@@ -310,7 +310,6 @@ process_exec (void *f_name) {	// f_name = 'args-single onearg'
 	// do interrupt return
 
 	// 성훈 sema up
-
 	do_iret (&_if);
 	
 	// asm volatile ("movl %0, %%esp; jmp intr_exit" : : "g" (&_if) : "memory");
@@ -370,6 +369,7 @@ void
 process_exit (void) {
 	struct thread *cur = thread_current ();
 	// printf("%s: exit(%d)\n", cur->name, status); 
+
 	
 	/* 1 : 정상종료? */
 	// cur->process_exit_status=cur->tid;
@@ -384,7 +384,6 @@ process_exit (void) {
 	sema_up(&cur->sema_wait); //fault!!
 	// Postpone child termination until parents receives its exit status with 'wait'
 	sema_down(&cur->sema_free);
-
 	process_cleanup ();
 }
 
@@ -423,6 +422,7 @@ process_activate (struct thread *next) {
 	pml4_activate (next->pml4);
 
 	/* Set thread's kernel stack for use in processing interrupts. */
+	// printf("process_Activate에서 tss_update 실행!\n");
 	tss_update (next);
 }
 
