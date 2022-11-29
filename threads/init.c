@@ -277,7 +277,7 @@ run_task (char **argv) {		//  run 'args-single onearg'
 /* Executes all of the actions specified in ARGV[]
    up to the null pointer sentinel. */
 static void
-run_actions (char **argv) {				  // run 'args-single onearg'
+run_actions (char **argv) {				  // run 'args-single onearg' ,argv[] ={put, args-sing, run, 'args-single onearg'}
 	/* An action. */
 	struct action {
 		char *name;                       /* Action name. */

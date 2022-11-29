@@ -138,6 +138,13 @@ void thread_start(void)
 	intr_enable();
 	printf(" thread_start() 함수 내부 sema_down 직전 current_thread : %s\n",thread_current()->name);
 	/* sema_down 직전 running thread == main, ready_list에는 idle 들어있음*/
+	/* sema_down 직전 running thread == main, ready_list에는 idle 들어있음*/
+	/*sema_down()함수에서
+	- 현재 스레드(main)을 idle_sema의 waiter리스트에 삽입
+	- thread block() 함수호출
+	-- 현재 스레드(main)의 status를 blocked로 업데이트 후 waiter_list에 삽입
+	-- schecule() 함수 호출
+	---next_thread(idle 쓰레드)의 상태를 Running으로 만들고 실행*/
 	/* Wait for the idle thread to initialize idle_thread. */
 	sema_down(&idle_started);
 }
@@ -247,8 +254,10 @@ void thread_block(void)
 {
 	ASSERT(!intr_context());
 	ASSERT(intr_get_level() == INTR_OFF);
+	// printf("################schedule전 current_thread : %s\n",thread_current()->name);
 	thread_current()->status = THREAD_BLOCKED;
 	schedule();
+	// printf("################schedule후 current_thread : %s",thread_current()->name);
 }
 
 /* block 상태의 스레드를 ready로 바꿔줌 */
@@ -648,7 +657,6 @@ schedule(void)
 {
 	struct thread *curr = running_thread();		// do_schedule에서는 status만 바꿔줌
 	struct thread *next = next_thread_to_run(); // next run할 변수 설정
-
 	ASSERT(intr_get_level() == INTR_OFF);	    // scheduling 도중에는 인터럽트가 발생하면 안 되기 때문에 INTR_OFF 상태인지 확인한다.
 	ASSERT(curr->status != THREAD_RUNNING);     // CPU 소유권을 넘겨주기 전에 running 스레드는 그 상태를 running 외의 다른 상태로 바꾸어주는 작업이 되어 있어야 하고 이를 확인하는 부분이다.
 	ASSERT(is_thread(next));				    // next_thread_to_run()에 의해 올바른 thread 가 return 되었는지 확인returns true if next appears to point to a valid thread
@@ -664,7 +672,7 @@ schedule(void)
 #endif
 
 	if (curr != next)
-	{
+	{	
 		/* If the thread we switched from is dying, destroy its struct
 		   thread. This must happen late so that thread_exit() doesn't
 		   pull out the rug under itself.
@@ -683,6 +691,7 @@ schedule(void)
 		 * of current running. */
 		thread_launch(next);
 	}
+	
 }
 
 /* Returns a tid to use for a new thread. */

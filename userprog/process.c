@@ -43,6 +43,8 @@ process_init (void) {
  * Notice that THIS SHOULD BE CALLED ONCE. */
 tid_t
 process_create_initd (const char *file_name) {
+	printf("+---------------process_create_initd 진입\n");
+
 	char *fn_copy;
 	tid_t tid;
 	//(추측)file_name 문자열을 파싱(첫번째 토큰)
@@ -61,6 +63,7 @@ process_create_initd (const char *file_name) {
 	// file_name: 스레드이름(문자열), PRI_DEFAULT: 스레드우선순위(31)
 	// initd: 생성된 스레드가 실행할 함수를 가리키는 포인터, fn_copy: start_process 함수를 수행할 때 사용하는 인자값
 	// initd : 1st argument(rdi) , fn_copy : 2nd argument(rsi)
+	printf("--------------%s\n",thread_current()->name);
 	tid = thread_create (file_name, PRI_DEFAULT, initd, fn_copy);
 	if (tid == TID_ERROR)
 		palloc_free_page (fn_copy);
@@ -340,7 +343,7 @@ process_wait (tid_t child_tid UNUSED) {
 	// return -1;
 	/*자식프로세스가 모두 종료 될 때 까지 대기(sleep state)
 	자식프로세스가 올바르게 종료됐는지 확인*/
-
+	printf("+---------------process_wait 진입\n");
 	// struct thread *parent = thread_current();
 	struct thread *child = get_child_process(child_tid);
 	/* 1) TID가 잘못되었거나 2) TID가 호출 프로세스의 자식이 아니거나*/

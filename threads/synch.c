@@ -77,6 +77,7 @@ sema_down (struct semaphore *sema) {
 	//sema값이 0인 동안(자원이 없는동안) 현재 thread를 waiters에 넣고 상태를 block으로 바꿈 
 	//while문이 0일때 thread_block에서 멈춰서 sema_up이 되기를 기다림 
 	while (sema->value == 0) {	// waiters 리스트 삽입 시, 우선순위대로 삽입되도록 수정
+		printf(" sema_down() 함수 내부 sema_down --current_thread : %s\n",thread_current()->name);
 		list_insert_ordered(&sema->waiters, &thread_current()->elem, cmp_priority, NULL); 
 		thread_block ();		//자원이 없으면 block으로 상태바꾸고 schedule()
 	}							
